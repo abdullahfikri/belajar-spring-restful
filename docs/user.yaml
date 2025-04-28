@@ -1,0 +1,239 @@
+openapi: 3.0.0
+info:
+  title: User API Spec
+  description: User API Spec
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8181/api'
+paths:
+  /user :
+    post:
+      summary: 'Created User'
+      requestBody:
+        required: true
+        description: 'User data for register'
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - password
+                - username
+              properties:
+                username:
+                  minLength: 8
+                  type: string
+                password:
+                  type: string
+                  minLength: 8
+                name:
+                  type: string
+                  minLength: 3
+            example:
+                username: "johndoe123"
+                password: "secretXYZ123*"
+                name: "John Doe"
+      responses:
+        201:
+          $ref: "#/components/responses/GeneralSuccess"
+        400:
+          description: "Failed created user, client error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneralError"
+              example:
+                errors: "Username must not blank, password must not blank, ??"
+        500:
+          $ref: "#/components/responses/ServerErrorResponse"
+
+
+  /user/current:
+    get:
+      summary: "Get current user"
+      parameters:
+        - $ref: "#/components/parameters/X-API-TOKEN"
+      responses:
+        200:
+          $ref: "#/components/responses/DataUserResponse"
+        401:
+         $ref: "#/components/responses/UnauthorizedErrorResponse"
+        500:
+          $ref: "#/components/responses/ServerErrorResponse"
+    patch:
+      summary: "Update partial user data"
+      parameters:
+        - $ref: "#/components/parameters/X-API-TOKEN"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: "Put if only want to update name"
+                password:
+                  type: string
+                  description: "Put if only want to update password"
+            examples:
+              UpdateName:
+                description: "Just update name"
+                value:
+                  name: "Alexander John"
+              UpdatePassword:
+                description: "Just update password"
+                value:
+                  password: "NewPassword77*!"
+              UpdateNamePassword:
+                description: "Update name and password"
+                value:
+                  name: "Alexander John"
+                  password: "NewPassword77*!"
+      responses:
+        200:
+          $ref: "#/components/responses/DataUserResponse"
+        401:
+          $ref: "#/components/responses/UnauthorizedErrorResponse"
+        500:
+          $ref: "#/components/responses/ServerErrorResponse"
+
+  /auth/login:
+    post:
+      summary: "Login User"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  minLength: 8
+                password:
+                  type: string
+                  minLength: 8
+              required:
+                - username
+                - password
+              example:
+                username: johndoe123
+                password: secretXYZ123*
+      responses:
+        200:
+          description: "Success login"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                        description: "Auth Token"
+                      expiredAt:
+                        type: integer
+                        description: "Expired time of TOKEN in milliseconds"
+              example:
+                data:
+                  token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+                  expiredAt:
+                    30123129843822
+        400:
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneralError"
+              example:
+                errors:
+                  "Username or password must not blank"
+        401:
+          description: "Unauthorized user"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneralError"
+              example:
+                errors: "Username or password wrong"
+        500:
+          $ref: "#/components/responses/ServerErrorResponse"
+  /auth/logout:
+    delete:
+      parameters:
+        - $ref: "#/components/parameters/X-API-TOKEN"
+      responses:
+        200:
+          $ref: "#/components/responses/GeneralSuccess"
+        401:
+          $ref: "#/components/responses/UnauthorizedErrorResponse"
+        500:
+          $ref: "#/components/responses/ServerErrorResponse"
+
+components:
+  schemas:
+    GeneralError:
+      type: object
+      properties:
+        errors:
+          type: string
+  responses:
+    GeneralSuccess:
+      description: "Success"
+      content: 
+        application/json:
+          schema: 
+            type: object
+            properties: 
+              data:
+                type: string
+          example: 
+            data: "OK"
+    DataUserResponse:
+      description: "Response data user"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  username:
+                    type: string
+                  name:
+                    type: string
+          example:
+            data:
+              username: "johndoe123"
+              name: "John Doe"
+    UnauthorizedErrorResponse:
+      description: "Unauthorized request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GeneralError"
+          example:
+            errors: "Unauthorized request"
+    ServerErrorResponse:
+      description: "Server error"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GeneralError"
+          example:
+            errors: "Server unavailable, try again"
+
+  parameters:
+    X-API-TOKEN:
+      name: "X-API-TOKEN"
+      in: "header"
+      required: true
+      description: "auth token"
+      schema:
+        type: string
+      example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9

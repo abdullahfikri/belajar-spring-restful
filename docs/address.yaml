@@ -1,0 +1,265 @@
+openapi: 3.0.0
+info:
+  title: Address API Spec
+  description: Address API Spec
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8181/contacts/{idContact}/addresses'
+paths:
+  /:
+    post:
+      summary: "Create an address"
+      parameters:
+        - $ref: "#/components/parameters/X-API-TOKEN"
+        - $ref: "#/components/parameters/CONTACT-ID"
+      requestBody:
+        $ref: "#/components/requestBodies/AddressRequest"
+      responses:
+        201:
+          $ref: "#/components/responses/GeneralSuccessResponse"
+        400:
+          $ref: "#/components/responses/GeneralBadRequestResponse"
+        401:
+          $ref: "#/components/responses/UnauthorizedErrorResponse"
+        404:
+          description: "Cannot found contact from id contact"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneralError"
+              example:
+                errors: "Contact is not found"
+        500:
+          $ref: "#/components/responses/ServerErrorResponse"
+    get:
+      summary: "Get list of addresses"
+      parameters:
+        - $ref: "#/components/parameters/X-API-TOKEN"
+        - $ref: "#/components/parameters/CONTACT-ID"
+      responses:
+        200:
+          description: "Success get the list of addresses"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/address"
+              example:
+                data:
+                  - id: "randomstring"
+                    street: "Jalan Tengku Umar"
+                    city: "Jakarta Utara"
+                    province: "DKI. Jakarta"
+                    country: "Indonesia"
+                    postalCode: "0000000"
+
+        401:
+          $ref: "#/components/responses/UnauthorizedErrorResponse"
+        404:
+          description: "Cannot found contact from id contact"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneralError"
+              example:
+                errors: "Contact is not found"
+        500:
+          $ref: "#/components/responses/ServerErrorResponse"
+  /{idAddress}:
+    put:
+      summary: "Update the address"
+      parameters:
+        - $ref: "#/components/parameters/X-API-TOKEN"
+        - $ref: "#/components/parameters/CONTACT-ID"
+        - $ref: "#/components/parameters/ADDRESS-ID"
+      requestBody:
+        $ref: "#/components/requestBodies/AddressRequest"
+      responses:
+        200:
+          $ref: "#/components/responses/GeneralSuccessResponse"
+        400:
+          $ref: "#/components/responses/GeneralBadRequestResponse"
+        401:
+          $ref: "#/components/responses/UnauthorizedErrorResponse"
+        404:
+          description: "Cannot found contact or address"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneralError"
+              examples:
+                Invalid Contact Id:
+                  value:
+                    errors: "Contact is not found"
+                Invalid Address Id:
+                  value:
+                    errors: "Address is not found"
+        500:
+          $ref: "#/components/responses/ServerErrorResponse"
+    get:
+      summary: "Get an address"
+      parameters:
+        - $ref: "#/components/parameters/X-API-TOKEN"
+        - $ref: "#/components/parameters/CONTACT-ID"
+        - $ref: "#/components/parameters/ADDRESS-ID"
+      responses:
+        200:
+          $ref: "#/components/responses/GeneralSuccessResponse"
+        401:
+          $ref: "#/components/responses/UnauthorizedErrorResponse"
+        404:
+          $ref: "#/components/responses/GeneralNotFoundResponse"
+        500:
+          $ref: "#/components/responses/ServerErrorResponse"
+    delete:
+      summary: "Delete an address"
+      parameters:
+        - $ref: "#/components/parameters/X-API-TOKEN"
+        - $ref: "#/components/parameters/CONTACT-ID"
+        - $ref: "#/components/parameters/ADDRESS-ID"
+      responses:
+        200:
+          description: "Success delete the address"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: string
+              example:
+                data: "OK"
+        401:
+          $ref: "#/components/responses/UnauthorizedErrorResponse"
+        404:
+          $ref: "#/components/responses/GeneralNotFoundResponse"
+        500:
+          $ref: "#/components/responses/ServerErrorResponse"
+
+
+components:
+  schemas:
+    address:
+      type: object
+      required:
+        - street
+        - city
+        - province
+        - country
+        - postalCode
+      properties:
+        id:
+          type: string
+        street:
+          type: string
+        city:
+          type: string
+        province:
+          type: string
+        country:
+          type: string
+        postalCode:
+          type: string
+    GeneralError:
+      type: object
+      properties:
+        errors:
+          type: string
+  parameters:
+    X-API-TOKEN:
+      name: "X-API-TOKEN"
+      in: "header"
+      required: true
+      description: "auth token"
+      schema:
+        type: string
+      example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+    CONTACT-ID:
+      name: idContact
+      in: path
+      required: true
+      schema:
+        type: string
+      example: "randomstring"
+    ADDRESS-ID:
+      name: idContact
+      in: path
+      required: true
+      schema:
+        type: string
+      example: "randomstring"
+  requestBodies:
+    AddressRequest:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/address"
+          example:
+            street: "Jalan Tengku Umar"
+            city: "Jakarta Utara"
+            province: "DKI. Jakarta"
+            country: "Indonesia"
+            postalCode: "00011100"
+  responses:
+    GeneralSuccessResponse:
+      description: "Success created or update address"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                $ref: "#/components/schemas/address"
+          example:
+            data:
+              id: "randomstring"
+              street: "Jalan Tengku Umar"
+              city: "Jakarta Utara"
+              province: "DKI. Jakarta"
+              country: "Indonesia"
+              postalCode: "0000000"
+    GeneralBadRequestResponse:
+      description: "Bad Request Errors"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GeneralError"
+          examples:
+            Invalid Properties:
+              description: "Properties is invalid"
+              value:
+                errors: "Street is required, City cannot blank..."
+    GeneralNotFoundResponse:
+      description: "Cannot found contact or address"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GeneralError"
+          examples:
+            Invalid Contact Id:
+              value:
+                errors: "Contact is not found"
+            Invalid Address Id:
+              value:
+                errors: "Address is not found"
+    UnauthorizedErrorResponse:
+      description: "Unauthorized request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GeneralError"
+          example:
+            errors: "Unauthorized request"
+    ServerErrorResponse:
+      description: "Server error"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GeneralError"
+          example:
+            errors: "Server unavailable, try again"
+# Create address, update address, get address, remove address, list address
