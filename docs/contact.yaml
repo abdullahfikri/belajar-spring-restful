@@ -80,7 +80,7 @@ paths:
                         type: integer
                       totalPage:
                         type: integer
-                      sizePerPage:
+                      size:
                         type: integer
               example:
                 data:
@@ -179,8 +179,6 @@ components:
     contact:
       required:
         - firstName
-        - email
-        - phone
       type: object
       properties:
         id:
